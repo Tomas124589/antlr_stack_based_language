@@ -1,11 +1,11 @@
 from antlr4 import *
 
-from grammar.pjpGrammarLexer import pjpGrammarLexer
-from grammar.pjpGrammarParser import pjpGrammarParser
+from grammar.PjpGrammarLexer import PjpGrammarLexer as Lexer
+from grammar.PjpGrammarParser import PjpGrammarParser as Parser
 
-lexer = pjpGrammarLexer(InputStream('hello world'))
+lexer = Lexer(InputStream('hello world'))
 stream = CommonTokenStream(lexer)
-parser = pjpGrammarParser(stream)
+parser = Parser(stream)
 
 tree = parser.r()
 
