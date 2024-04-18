@@ -30,10 +30,12 @@ class MyVisitor(PjpGrammarVisitor):
             return self.visit(ctx.expression())
 
     def visitVariableDeclaration(self, ctx: PjpGrammarParser.VariableDeclarationContext):
-        self.vars[ctx.ID().getText()] = None
+        for _id in ctx.ID():
+            self.vars[_id.getText()] = None
 
     def visitVariableAssignment(self, ctx: PjpGrammarParser.VariableAssignmentContext):
-        self.vars[ctx.ID().getText()] = ctx.value().getText()
+        for _id in ctx.ID():
+            self.vars[_id.getText()] = ctx.value().getText()
 
     def visitAddSubExpression(self, ctx):
         left = self.visit(ctx.expression(0))

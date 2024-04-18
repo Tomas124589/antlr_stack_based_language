@@ -12,8 +12,8 @@ write : 'write' valueList ;
 valueList : value (',' value)* ;
 value : STRING | INT | FLOAT | BOOL | ID | expression ;
 
-variableDeclaration : TYPE ID ;
-variableAssignment : ID '=' value ;
+variableDeclaration : TYPE ID (',' ID)* ;
+variableAssignment : (ID '=')+ value ;
 
 expression : expression op=( MUL | DIV | MOD ) expression  # MulDivModExpression
            | expression op=( '+' | '-' ) expression        # AddSubExpression
