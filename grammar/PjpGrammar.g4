@@ -2,22 +2,29 @@ grammar PjpGrammar;
 
 program: statement+ ;
 
-statement : SEMICOL | write SEMICOL ;
+statement   : SEMICOL
+            | write SEMICOL
+            | variableDeclaration SEMICOL
+            | variableAssignment SEMICOL
+            ;
 
-write : 'write' argumentList ;
+write : 'write' valueList ;
+valueList : value (',' value)* ;
+value : STRING | INT | FLOAT | BOOL | ID ;
 
-argumentList : argument (',' argument)* ;
-argument : STRING | INT | FLOAT ;
+variableDeclaration : TYPE ID ;
+variableAssignment : ID '=' value ;
 
-ID : [a-z]+ ;
+TYPE : 'string' | 'int' | 'float' | 'bool' ;
+BOOL: 'true' | 'false' ;
+SEMICOL: ';' ;
 STRING: '"' (~["\\\r\n] | EscapeSequence)* '"';
-INT : [0-9]+ ;
+ID : [a-z]+ ;
+INT : '-'?[0-9]+ ;
 FLOAT:
     (Digits '.' Digits? | '.' Digits) ExponentPart? [fFdD]?
     | Digits (ExponentPart [fFdD]? | [fFdD])
 ;
-BOOL: 'true' | 'false' ;
-SEMICOL: ';' ;
 WS : [ \t\r\n]+ -> skip;
 
 fragment EscapeSequence:
