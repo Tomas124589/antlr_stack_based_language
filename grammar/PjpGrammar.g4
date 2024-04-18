@@ -10,11 +10,24 @@ statement   : SEMICOL
 
 write : 'write' valueList ;
 valueList : value (',' value)* ;
-value : STRING | INT | FLOAT | BOOL | ID ;
+value : STRING | INT | FLOAT | BOOL | ID | expression ;
 
 variableDeclaration : TYPE ID ;
 variableAssignment : ID '=' value ;
 
+expression : expression op=( MUL | DIV | MOD ) expression  # MulDivModExpression
+           | expression op=( '+' | '-' ) expression        # AddSubExpression
+           | '(' expression ')'                         # ParenExpression
+           | (INT | FLOAT)                              # NumberExpression
+           | STRING                                     # StringExpression
+           | STRING '.' STRING                          # ConcatExpression
+           ;
+
+MUL : '*' ;
+DIV : '/' ;
+MOD : '%' ;
+ADD : '+' ;
+SUB : '-' ;
 TYPE : 'string' | 'int' | 'float' | 'bool' ;
 BOOL: 'true' | 'false' ;
 SEMICOL: ';' ;
