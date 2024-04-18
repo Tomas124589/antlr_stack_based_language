@@ -4,6 +4,7 @@ program: statement+ ;
 
 statement   : SEMICOL
             | write SEMICOL
+            | read SEMICOL
             | variableDeclaration SEMICOL
             | variableAssignment SEMICOL
             ;
@@ -11,6 +12,8 @@ statement   : SEMICOL
 write : 'write' valueList ;
 valueList : value (',' value)* ;
 value : STRING | INT | FLOAT | BOOL | ID | expression ;
+
+read : 'read' ID (',' ID)* ;
 
 variableDeclaration : TYPE ID (',' ID)* ;
 variableAssignment : (ID '=')+ value ;

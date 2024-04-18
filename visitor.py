@@ -9,6 +9,12 @@ class MyVisitor(PjpGrammarVisitor):
     def visitWrite(self, ctx: PjpGrammarParser.WriteContext):
         self.visit(ctx.valueList())
 
+    def visitRead(self, ctx: PjpGrammarParser.ReadContext):
+        for _id in ctx.ID():
+            var = _id.getText()
+            val = input('Enter value for {}:\n'.format(var))
+            self.vars[var] = val
+
     def visitValueList(self, ctx: PjpGrammarParser.ValueListContext):
         res = [str(self.visit(value)) for value in ctx.value()]
 
