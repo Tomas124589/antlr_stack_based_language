@@ -39,6 +39,7 @@ FLOAT:
     | Digits (ExponentPart [fFdD]? | [fFdD])
 ;
 WS : [ \t\r\n]+ -> skip;
+LINE_COMMENT : '//' ~[\r\n]* -> skip;
 
 fragment EscapeSequence:
     '\\' 'u005c'? [btnfr"'\\]
