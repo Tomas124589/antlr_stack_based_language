@@ -2,11 +2,20 @@ from antlr4 import *
 
 from grammar.PjpGrammarLexer import PjpGrammarLexer as Lexer
 from grammar.PjpGrammarParser import PjpGrammarParser as Parser
+from visitor import MyVisitor
 
-lexer = Lexer(InputStream('hello world'))
-stream = CommonTokenStream(lexer)
-parser = Parser(stream)
 
-tree = parser.r()
+def main():
+    with open('examples/example01.txt', 'r') as file:
+        contents = file.read()
 
-print((tree.toStringTree(recog=parser)))
+    lexer = Lexer(InputStream(contents))
+    stream = CommonTokenStream(lexer)
+    parser = Parser(stream)
+
+    visitor = MyVisitor()
+    visitor.visit(parser.program())
+
+
+if __name__ == '__main__':
+    main()
