@@ -1,3 +1,6 @@
+import antlr4
+from antlr4.error.ErrorListener import ErrorListener as BaseErrorListener
+
 from grammar.PjpGrammarParser import PjpGrammarParser
 from grammar.PjpGrammarVisitor import PjpGrammarVisitor
 
@@ -79,3 +82,11 @@ class MyVisitor(PjpGrammarVisitor):
 
     def visitParenExpression(self, ctx):
         return self.visit(ctx.expression())
+
+
+class ErrorListener(BaseErrorListener):
+    def syntaxError(self, recognizer: antlr4.Parser, offendingSymbol, line, column, msg, e):
+        stack = recognizer.getRuleInvocationStack()
+
+        print('Rule stack:', stack)
+        print('Line {}: {} at {}: {}'.format(line, column, offendingSymbol, msg))
