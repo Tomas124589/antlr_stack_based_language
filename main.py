@@ -2,7 +2,7 @@ from antlr4 import *
 
 from grammar.PjpGrammarLexer import PjpGrammarLexer as Lexer
 from grammar.PjpGrammarParser import PjpGrammarParser as Parser
-from visitors import MyVisitor, ErrorListener
+from visitors import ErrorListener, TypeChecker, MyVisitor
 
 
 def main():
@@ -18,6 +18,15 @@ def main():
 
     tree = parser.program()
     if parser.getNumberOfSyntaxErrors() == 0:
+        type_checker = TypeChecker()
+        type_checker.visit(tree)
+
+        if len(type_checker.type_errors) > 0:
+            print('Type errors:')
+            for e in type_checker.type_errors:
+                print(e)
+            exit(1)
+
         visitor = MyVisitor()
         visitor.visit(tree)
 

@@ -5,34 +5,20 @@ from grammar.PjpGrammarParser import PjpGrammarParser
 from grammar.PjpGrammarVisitor import PjpGrammarVisitor
 
 
-class MyVisitor(PjpGrammarVisitor):
+class TypeChecker(PjpGrammarVisitor):
     def __init__(self):
         self.vars = {}
-
-    def visitWrite(self, ctx: PjpGrammarParser.WriteContext):
-        self.visit(ctx.valueList())
-
-    def visitRead(self, ctx: PjpGrammarParser.ReadContext):
-        for _id in ctx.ID():
-            var = _id.getText()
-            val = input('Enter value for {}:\n'.format(var))
-            self.vars[var] = val
-
-    def visitValueList(self, ctx: PjpGrammarParser.ValueListContext):
-        res = [str(self.visit(value)) for value in ctx.value()]
-
-        print("".join(res))
-        return None
+        self.type_errors = []
 
     def visitValue(self, ctx: PjpGrammarParser.ValueContext):
         if ctx.STRING():
-            return ctx.STRING().getText()[1:-1]
+            return str(ctx.STRING().getText()[1:-1])
         elif ctx.INT():
-            return ctx.INT().getText()
+            return int(ctx.INT().getText())
         elif ctx.FLOAT():
-            return ctx.FLOAT().getText()
+            return float(ctx.FLOAT().getText())
         elif ctx.BOOL():
-            return ctx.BOOL().getText()
+            return bool(ctx.BOOL().getText())
         elif ctx.ID():
             return self.vars[ctx.ID().getText()]
         elif ctx.expression():
@@ -40,7 +26,70 @@ class MyVisitor(PjpGrammarVisitor):
 
     def visitVariableDeclaration(self, ctx: PjpGrammarParser.VariableDeclarationContext):
         for _id in ctx.ID():
-            self.vars[_id.getText()] = None
+            self.vars[_id.getText()] = {
+                'type': ctx.TYPE().getText(),
+                'value': None
+            }
+
+    def visitVariableAssignment(self, ctx: PjpGrammarParser.VariableAssignmentContext):
+        for _id in ctx.ID():
+            declared_type = self.vars[_id.getText()]['type']
+            current_type = type(self.visit(ctx.value())).__name__
+            if current_type == 'str':
+                current_type = 'string'
+
+            if declared_type != current_type:
+                token = _id.getSymbol()
+                self.type_errors.append("Trying to assign {} to {} at {}:{}"
+                .format(
+                    current_type,
+                    declared_type,
+                    token.line,
+                    token.column
+                ))
+
+            self.vars[_id.getText()] = ctx.value().getText()
+
+
+class MyVisitor(PjpGrammarVisitor):
+    def __init__(self):
+        self.vars = {}
+        self.output_file = open("bytecode.txt", "w")
+
+    def add_instruction(self, instruction: str):
+        self.output_file.write(instruction + "\n")
+
+    def visitWrite(self, ctx: PjpGrammarParser.WriteContext):
+        values = self.visit(ctx.valueList())
+
+        self.add_instruction('print {}'.format(len(values)))
+
+    def visitRead(self, ctx: PjpGrammarParser.ReadContext):
+        pass
+
+    def visitValueList(self, ctx: PjpGrammarParser.ValueListContext):
+        return [str(self.visit(value)) for value in ctx.value()]
+
+    def visitValue(self, ctx: PjpGrammarParser.ValueContext):
+        if ctx.STRING():
+            return str(ctx.STRING().getText()[1:-1])
+        elif ctx.INT():
+            return int(ctx.INT().getText())
+        elif ctx.FLOAT():
+            return float(ctx.FLOAT().getText())
+        elif ctx.BOOL():
+            return bool(ctx.BOOL().getText())
+        elif ctx.ID():
+            return self.vars[ctx.ID().getText()]
+        elif ctx.expression():
+            return self.visit(ctx.expression())
+
+    def visitVariableDeclaration(self, ctx: PjpGrammarParser.VariableDeclarationContext):
+        for _id in ctx.ID():
+            self.vars[_id.getText()] = {
+                'type': ctx.TYPE().getText(),
+                'value': None
+            }
 
     def visitVariableAssignment(self, ctx: PjpGrammarParser.VariableAssignmentContext):
         for _id in ctx.ID():
