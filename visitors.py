@@ -1,5 +1,6 @@
 import antlr4
 from antlr4.error.ErrorListener import ErrorListener as BaseErrorListener
+from antlr4.tree.Tree import TerminalNodeImpl
 
 from grammar.PjpGrammarParser import PjpGrammarParser
 from grammar.PjpGrammarVisitor import PjpGrammarVisitor
@@ -59,8 +60,47 @@ class MyVisitor(PjpGrammarVisitor):
     def add_instruction(self, instruction: str):
         self.output_file.write(instruction + "\n")
 
+    @staticmethod
+    def infer_bytecode_type(val):
+        return MyVisitor.type_2_bytecode_type(type(val).__name__)
+
+    @staticmethod
+    def type_2_bytecode_type(_type: str):
+        if _type == 'str' or _type == 'string':
+            return 'S'
+        elif _type == 'int':
+            return 'I'
+        elif _type == 'float':
+            return 'F'
+        elif _type == 'bool':
+            return 'B'
+        else:
+            print('unknown type {}'.format(_type))
+            return 'UNKNOWN'
+
+    @staticmethod
+    def get_type_default_value(_type: str):
+        if _type == 'S':
+            return '""'
+        elif _type == 'I':
+            return 0
+        elif _type == 'F':
+            return 0.0
+        elif _type == 'B':
+            return False
+        else:
+            print('unknown type {}'.format(_type))
+            return 'UNKNOWN'
+
     def visitWrite(self, ctx: PjpGrammarParser.WriteContext):
         values = self.visit(ctx.valueList())
+
+        for value in values:
+            if type(value) is TerminalNodeImpl:
+                self.add_instruction('load {}'.format(value.getText()))
+            else:
+                bytecode_type = self.infer_bytecode_type(value)
+                self.add_instruction('push {} {}'.format(bytecode_type, value))
 
         self.add_instruction('print {}'.format(len(values)))
 
@@ -68,11 +108,11 @@ class MyVisitor(PjpGrammarVisitor):
         pass
 
     def visitValueList(self, ctx: PjpGrammarParser.ValueListContext):
-        return [str(self.visit(value)) for value in ctx.value()]
+        return [self.visit(value) for value in ctx.value()]
 
     def visitValue(self, ctx: PjpGrammarParser.ValueContext):
         if ctx.STRING():
-            return str(ctx.STRING().getText()[1:-1])
+            return str(ctx.STRING().getText())
         elif ctx.INT():
             return int(ctx.INT().getText())
         elif ctx.FLOAT():
@@ -80,20 +120,33 @@ class MyVisitor(PjpGrammarVisitor):
         elif ctx.BOOL():
             return bool(ctx.BOOL().getText())
         elif ctx.ID():
-            return self.vars[ctx.ID().getText()]
+            self.add_instruction('load {}'.format(ctx.ID().getText()))
+            self.add_instruction('pop')
+            return ctx.ID()
         elif ctx.expression():
             return self.visit(ctx.expression())
 
     def visitVariableDeclaration(self, ctx: PjpGrammarParser.VariableDeclarationContext):
         for _id in ctx.ID():
+            type = self.type_2_bytecode_type(ctx.TYPE().getText())
+            value = self.get_type_default_value(type)
+
             self.vars[_id.getText()] = {
                 'type': ctx.TYPE().getText(),
-                'value': None
+                'value': value
             }
+
+            self.add_instruction('push {} {}'.format(type, value))
+            self.add_instruction('save {}'.format(_id))
 
     def visitVariableAssignment(self, ctx: PjpGrammarParser.VariableAssignmentContext):
         for _id in ctx.ID():
-            self.vars[_id.getText()] = ctx.value().getText()
+            val = self.visit(ctx.value())
+
+            self.add_instruction('push {} {}'.format(self.infer_bytecode_type(val), val))
+            self.add_instruction('save {}'.format(_id))
+
+            self.vars[_id.getText()]['value'] = val
 
     def visitAddSubExpression(self, ctx):
         left = self.visit(ctx.expression(0))
