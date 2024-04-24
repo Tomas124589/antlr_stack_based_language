@@ -18,14 +18,20 @@ read : 'read' ID (',' ID)* ;
 variableDeclaration : TYPE ID (',' ID)* ;
 variableAssignment : (ID '=')+ value ;
 
-expression : expression op=( MUL | DIV | MOD ) expression  # MulDivModExpression
-           | expression op=( '+' | '-' ) expression        # AddSubExpression
-           | '(' expression ')'                         # ParenExpression
-           | (INT | FLOAT)                              # NumberExpression
-           | STRING                                     # StringExpression
-           | STRING '.' STRING                          # ConcatExpression
+expression : expression op=( MUL | DIV | MOD ) expression   # MulDivModExpression
+           | expression op=( '+' | '-' ) expression         # AddSubExpression
+           | expression op=(LT | GT) expression             # LesserGreaterExpression
+           | expression op=(EQ | NEQ) expression            # EqualNotEqualExpression
+           | '(' expression ')'                             # ParenExpression
+           | (INT | FLOAT)                                  # NumberExpression
+           | STRING '.' STRING                              # ConcatExpression
+           | STRING                                         # StringExpression
            ;
 
+LT: '<' ;
+GT: '>' ;
+EQ: '==';
+NEQ: '!=';
 MUL : '*' ;
 DIV : '/' ;
 MOD : '%' ;
