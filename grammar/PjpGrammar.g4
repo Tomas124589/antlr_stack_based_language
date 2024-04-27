@@ -7,6 +7,8 @@ statement   : SEMICOL
             | read SEMICOL
             | variableDeclaration SEMICOL
             | variableAssignment SEMICOL
+            | ifStatement
+            | ifStatementBody
             ;
 
 write : 'write' expression (',' expression)* ;
@@ -16,6 +18,8 @@ read : 'read' ID (',' ID)* ;
 
 variableDeclaration : TYPE ID (',' ID)* ;
 variableAssignment : (ID '=')+ value ;
+ifStatement: IF '(' expression ')' statement ELSE statement;
+ifStatementBody: IF '(' expression ')' '{' statement+ '}';
 
 expression : expression op=( MUL | DIV | MOD ) expression   # MulDivModExpression
            | expression op=( '+' | '-' ) expression         # AddSubExpression
@@ -38,11 +42,16 @@ LT: '<' ;
 GT: '>' ;
 EQ: '==';
 NEQ: '!=';
+
 MUL : '*' ;
 DIV : '/' ;
 MOD : '%' ;
 ADD : '+' ;
 SUB : '-' ;
+
+IF : 'if' ;
+ELSE : 'else' ;
+
 TYPE : 'string' | 'int' | 'float' | 'bool' ;
 BOOL: 'true' | 'false' ;
 SEMICOL: ';' ;

@@ -59,6 +59,7 @@ class MyVisitor(PjpGrammarVisitor):
         self.vars = {}
         self.output_file = open("bytecode.txt", "w")
         self.last_declared_type = None
+        self.last_label_id = -1
 
     def push(self, val):
         type = self.infer_bytecode_type(val)
@@ -100,6 +101,10 @@ class MyVisitor(PjpGrammarVisitor):
         else:
             print('unknown type {}'.format(_type))
             return 'UNKNOWN'
+
+    def get_next_label_id(self):
+        self.last_label_id = self.last_label_id + 1
+        return self.last_label_id
 
     def visitProgram(self, ctx: PjpGrammarParser.ProgramContext):
         [self.visit(value) for value in ctx.statement()]
@@ -230,19 +235,23 @@ class MyVisitor(PjpGrammarVisitor):
         is_left_int = float(ctx.expression()[0].getText()).is_integer()
         is_right_int = float(ctx.expression()[1].getText()).is_integer()
 
-        self.visit(ctx.expression()[0])
+        left = self.visit(ctx.expression()[0])
         if is_left_int and not is_right_int:
             self.add_instruction('itof')
 
-        self.visit(ctx.expression()[1])
+        right = self.visit(ctx.expression()[1])
 
         if is_right_int is int and not is_left_int:
             self.add_instruction('itof')
 
         if ctx.op.type == PjpGrammarParser.LT:
             self.add_instruction('lt')
+            result = left < right
         else:
             self.add_instruction('gt')
+            result = left > right
+
+        return result
 
     def visitEqualNotEqualExpression(self, ctx: PjpGrammarParser.EqualNotEqualExpressionContext):
         self.visit(ctx.expression()[0])
@@ -267,6 +276,32 @@ class MyVisitor(PjpGrammarVisitor):
         self.visit(ctx.expression())
         self.add_instruction('not')
         return ctx
+
+    def visitIfStatement(self, ctx: PjpGrammarParser.IfStatementContext):
+        self.visit(ctx.expression())
+
+        fjmp_label = self.get_next_label_id()
+        self.add_instruction('fjmp {}'.format(fjmp_label))
+        self.visit(ctx.statement()[0])
+
+        jmp_label = self.get_next_label_id()
+        self.add_instruction('jmp {}'.format(jmp_label))
+        self.add_instruction('label {}'.format(fjmp_label))
+        self.visit(ctx.statement()[1])
+
+        self.add_instruction('label {}'.format(jmp_label))
+
+    def visitIfStatementBody(self, ctx: PjpGrammarParser.IfStatementBodyContext):
+        self.visit(ctx.expression())
+
+        fjmp_label = self.get_next_label_id()
+        self.add_instruction('fjmp {}'.format(fjmp_label))
+        [self.visit(value) for value in ctx.statement()]
+
+        jmp_label = self.get_next_label_id()
+        self.add_instruction('jmp {}'.format(jmp_label))
+        self.add_instruction('label {}'.format(fjmp_label))
+        self.add_instruction('label {}'.format(jmp_label))
 
 
 class ErrorListener(BaseErrorListener):
