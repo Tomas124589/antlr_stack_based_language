@@ -101,6 +101,10 @@ class MyVisitor(PjpGrammarVisitor):
             print('unknown type {}'.format(_type))
             return 'UNKNOWN'
 
+    def visitProgram(self, ctx: PjpGrammarParser.ProgramContext):
+        [self.visit(value) for value in ctx.statement()]
+        self.output_file.close()
+
     def visitWrite(self, ctx: PjpGrammarParser.WriteContext):
         [self.visit(value) for value in ctx.expression()]
 

@@ -2,6 +2,7 @@ from antlr4 import *
 
 from grammar.PjpGrammarLexer import PjpGrammarLexer as Lexer
 from grammar.PjpGrammarParser import PjpGrammarParser as Parser
+from virtual_machine import VirtualMachine
 from visitors import ErrorListener, TypeChecker, MyVisitor
 
 
@@ -29,6 +30,9 @@ def main():
 
         visitor = MyVisitor()
         visitor.visit(tree)
+
+        with open('bytecode.txt', 'r') as file:
+            VirtualMachine.execute(file.read())
 
 
 if __name__ == '__main__':
