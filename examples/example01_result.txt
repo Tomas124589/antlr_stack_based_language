@@ -30,7 +30,8 @@ load d
 print 2
 push I 0
 save n
-push I -500
+push I 500
+uminus
 save n
 load n
 pop
@@ -39,9 +40,9 @@ load n
 print 2
 push S ""
 print 1
-push B False
+push B false
 save boolean
-push B True
+push B true
 save boolean
 load boolean
 pop
@@ -53,22 +54,39 @@ print 1
 push S "<Expressions>"
 print 1
 push S "2+3*5(17): "
-push I 17
+push I 2
+push I 3
+push I 5
+mul
+add
 print 2
 push S "17 / 3(5): "
-push F 5.666666666666667
+push I 17
+push I 3
+div
 print 2
 push S "17 % 3(2): "
-push I 2
+push I 17
+push I 3
+mod
 print 2
 push S "2.5*2.5/6.25(1.0): "
-push F 1.0
+push F 2.5
+push F 2.5
+mul
+push F 6.25
+div
 print 2
 push S "1.5*3(4.5): "
-push F 4.5
+push F 1.5
+push I 3
+itof
+mul
 print 2
 push S "abc+def (abcdef): "
-push S abcdef
+push S "abc"
+push S "def"
+concat
 print 2
 push S ""
 print 1
@@ -78,7 +96,8 @@ push S "<Automatic int conversion>"
 print 1
 push F 0.0
 save y
-push F 10.0
+push I 10
+itof
 save y
 load y
 pop
@@ -94,16 +113,12 @@ save j
 push I 0
 save k
 push I 55
-save i
-push I 55
-save j
-push I 55
 save k
-load i
-pop
-load j
-pop
 load k
+save j
+load j
+save i
+load i
 pop
 push S "i=j=k=55: "
 load i
@@ -120,24 +135,32 @@ push F 0.0
 save b
 push S ""
 save c
-push B False
+push B false
 save e
 push I 0
 save a
-push F 0.0
-save b
-push S ""
-save c
-push B True
-save e
 load a
 pop
+push F 0.0
+save b
 load b
 pop
+push S ""
+save c
 load c
 pop
+push B true
+save e
 load e
 pop
+read I
+save a
+read F
+save b
+read S
+save c
+read B
+save e
 push S "a,b,c,e: "
 load a
 push S ","

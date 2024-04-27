@@ -36,7 +36,7 @@ write  "<Comments>"; // hidden
 
 write "<Automatic int conversion>";
 float y;
-y = 10.0;
+y = 10;
 write "y (10.0): ", y;
 
 write "<Multiple Assignments>";
