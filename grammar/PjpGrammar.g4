@@ -9,8 +9,7 @@ statement   : SEMICOL
             | variableAssignment SEMICOL
             ;
 
-write : 'write' valueList ;
-valueList : value (',' value)* ;
+write : 'write' expression (',' expression)* ;
 value : STRING | INT | FLOAT | BOOL | ID | expression ;
 
 read : 'read' ID (',' ID)* ;
@@ -20,14 +19,21 @@ variableAssignment : (ID '=')+ value ;
 
 expression : expression op=( MUL | DIV | MOD ) expression   # MulDivModExpression
            | expression op=( '+' | '-' ) expression         # AddSubExpression
+           | expression op=(AND | OR) expression            # LogicalExpression
            | expression op=(LT | GT) expression             # LesserGreaterExpression
            | expression op=(EQ | NEQ) expression            # EqualNotEqualExpression
            | '(' expression ')'                             # ParenExpression
+           | ID                                             # IdExpression
            | (INT | FLOAT)                                  # NumberExpression
            | STRING '.' STRING                              # ConcatExpression
            | STRING                                         # StringExpression
+           | BOOL                                           # BoolExpression
+           | NOT expression                                 # NotExpression
            ;
 
+NOT: '!' ;
+AND: '&&' ;
+OR: '||' ;
 LT: '<' ;
 GT: '>' ;
 EQ: '==';
