@@ -9,17 +9,18 @@ statement   : SEMICOL
             | variableAssignment SEMICOL
             | ifStatement
             | ifStatementBody
+            | whileStatement
             ;
 
 write : 'write' expression (',' expression)* ;
-value : STRING | INT | FLOAT | BOOL | ID | expression ;
 
 read : 'read' ID (',' ID)* ;
 
 variableDeclaration : TYPE ID (',' ID)* ;
-variableAssignment : (ID '=')+ value ;
+variableAssignment : (ID '=')+ expression ;
 ifStatement: IF '(' expression ')' statement ELSE statement;
 ifStatementBody: IF '(' expression ')' '{' statement+ '}';
+whileStatement: WHILE '(' expression ')' '{' statement+ '}' ;
 
 expression : expression op=( MUL | DIV | MOD ) expression   # MulDivModExpression
            | expression op=( '+' | '-' ) expression         # AddSubExpression
@@ -51,6 +52,7 @@ SUB : '-' ;
 
 IF : 'if' ;
 ELSE : 'else' ;
+WHILE : 'while' ;
 
 TYPE : 'string' | 'int' | 'float' | 'bool' ;
 BOOL: 'true' | 'false' ;
