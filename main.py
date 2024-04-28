@@ -1,13 +1,14 @@
+import sys
+
 from antlr4 import *
 
 from grammar.PjpGrammarLexer import PjpGrammarLexer as Lexer
 from grammar.PjpGrammarParser import PjpGrammarParser as Parser
-from virtual_machine import VirtualMachine
 from visitors import ErrorListener, TypeChecker, MyVisitor
 
 
-def main():
-    with open('examples/example01.txt', 'r') as file:
+def main(path):
+    with open(path, 'r') as file:
         contents = file.read()
 
     lexer = Lexer(InputStream(contents))
@@ -31,9 +32,9 @@ def main():
         visitor = MyVisitor()
         visitor.visit(tree)
 
-        with open('bytecode.txt', 'r') as file:
-            VirtualMachine.execute(file.read())
-
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 2:
+        main(sys.argv[1])
+    else:
+        print('No source code specified')
