@@ -154,6 +154,9 @@ class MyVisitor(PjpGrammarVisitor):
     def add_instruction(self, instruction: str):
         self.instuctions.append(instruction)
 
+    def insert_instruction(self, instruction: str, index: int):
+        self.instuctions.insert(index, instruction)
+
     @staticmethod
     def infer_bytecode_type(val):
         return MyVisitor.type_2_bytecode_type(type(val).__name__)
@@ -306,17 +309,17 @@ class MyVisitor(PjpGrammarVisitor):
         return self.vars[ctx.ID().getText()]['value']
 
     def visitLesserGreaterExpression(self, ctx: PjpGrammarParser.LesserGreaterExpressionContext):
-        # is_left_int = float(ctx.expression()[0].getText()).is_integer()
-        # is_right_int = float(ctx.expression()[1].getText()).is_integer()
-
         left = self.visit(ctx.expression()[0])
-        # if is_left_int and not is_right_int:
-        #     self.add_instruction('itof')
-
         right = self.visit(ctx.expression()[1])
 
-        # if is_right_int is int and not is_left_int:
-        #     self.add_instruction('itof')
+        left_type = type(left)
+        right_type = type(right)
+
+        if left_type is int and right_type is float:
+            self.insert_instruction('itof', -1)
+
+        if right_type is int and left_type is float:
+            self.add_instruction('itof')
 
         if ctx.op.type == PjpGrammarParser.LT:
             self.add_instruction('lt')
@@ -328,8 +331,17 @@ class MyVisitor(PjpGrammarVisitor):
         return result
 
     def visitEqualNotEqualExpression(self, ctx: PjpGrammarParser.EqualNotEqualExpressionContext):
-        self.visit(ctx.expression()[0])
-        self.visit(ctx.expression()[1])
+        left = self.visit(ctx.expression()[0])
+        right = self.visit(ctx.expression()[1])
+
+        left_type = type(left)
+        right_type = type(right)
+
+        if left_type is int and right_type is float:
+            self.insert_instruction('itof', -1)
+
+        if right_type is int and left_type is float:
+            self.add_instruction('itof')
 
         if ctx.op.type == PjpGrammarParser.EQ:
             self.add_instruction('eq')
