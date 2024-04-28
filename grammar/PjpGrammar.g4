@@ -24,7 +24,8 @@ whileStatement: WHILE '(' expression ')' '{' statement+ '}' ;
 
 expression : expression op=( MUL | DIV | MOD ) expression   # MulDivModExpression
            | expression op=( '+' | '-' ) expression         # AddSubExpression
-           | expression op=(AND | OR) expression            # LogicalExpression
+           | expression op=AND expression                   # LogicalExpression
+           | expression op=OR expression                    # LogicalExpression
            | expression op=(LT | GT) expression             # LesserGreaterExpression
            | expression op=(EQ | NEQ) expression            # EqualNotEqualExpression
            | '(' expression ')'                             # ParenExpression
