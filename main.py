@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 from antlr4 import *
 
@@ -30,7 +31,10 @@ def main(path):
             exit(1)
 
         visitor = MyVisitor()
-        visitor.visit(tree)
+        instructions = visitor.visit(tree)
+
+        with open(Path(__file__).parent / 'bytecode.txt', 'w') as file:
+            file.writelines("\n".join(instructions))
 
 
 if __name__ == '__main__':

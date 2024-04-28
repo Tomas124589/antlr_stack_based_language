@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import antlr4
 from antlr4.error.ErrorListener import ErrorListener as BaseErrorListener
 
@@ -140,7 +138,7 @@ class TypeChecker(PjpGrammarVisitor):
 class MyVisitor(PjpGrammarVisitor):
     def __init__(self):
         self.vars = {}
-        self.output_file = open(Path(__file__).parent / 'bytecode.txt', "w")
+        self.instuctions = []
         self.last_declared_type = None
         self.last_label_id = -1
 
@@ -154,7 +152,7 @@ class MyVisitor(PjpGrammarVisitor):
         return val
 
     def add_instruction(self, instruction: str):
-        self.output_file.write(instruction + "\n")
+        self.instuctions.append(instruction)
 
     @staticmethod
     def infer_bytecode_type(val):
@@ -194,7 +192,7 @@ class MyVisitor(PjpGrammarVisitor):
 
     def visitProgram(self, ctx: PjpGrammarParser.ProgramContext):
         [self.visit(value) for value in ctx.statement()]
-        self.output_file.close()
+        return self.instuctions
 
     def visitWrite(self, ctx: PjpGrammarParser.WriteContext):
         [self.visit(value) for value in ctx.expression()]
@@ -308,17 +306,17 @@ class MyVisitor(PjpGrammarVisitor):
         return self.vars[ctx.ID().getText()]['value']
 
     def visitLesserGreaterExpression(self, ctx: PjpGrammarParser.LesserGreaterExpressionContext):
-        is_left_int = float(ctx.expression()[0].getText()).is_integer()
-        is_right_int = float(ctx.expression()[1].getText()).is_integer()
+        # is_left_int = float(ctx.expression()[0].getText()).is_integer()
+        # is_right_int = float(ctx.expression()[1].getText()).is_integer()
 
         left = self.visit(ctx.expression()[0])
-        if is_left_int and not is_right_int:
-            self.add_instruction('itof')
+        # if is_left_int and not is_right_int:
+        #     self.add_instruction('itof')
 
         right = self.visit(ctx.expression()[1])
 
-        if is_right_int is int and not is_left_int:
-            self.add_instruction('itof')
+        # if is_right_int is int and not is_left_int:
+        #     self.add_instruction('itof')
 
         if ctx.op.type == PjpGrammarParser.LT:
             self.add_instruction('lt')
