@@ -1,3 +1,6 @@
+import sys
+
+
 class VirtualMachine:
     def __init__(self, byte_code: str):
         self.stack = []
@@ -180,6 +183,9 @@ class VirtualMachine:
 
 
 if __name__ == '__main__':
-    with open('bytecode.txt', 'r') as file:
-        vm = VirtualMachine(file.read())
-        vm.execute()
+    if len(sys.argv) == 2:
+        with open(sys.argv[1], 'r') as file:
+            vm = VirtualMachine(file.read())
+            vm.execute()
+    else:
+        print('No bytecode path specified')
