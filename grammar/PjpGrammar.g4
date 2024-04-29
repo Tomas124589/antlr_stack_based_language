@@ -31,7 +31,7 @@ expression : expression op=( MUL | DIV | MOD ) expression   # MulDivModExpressio
            | '(' expression ')'                             # ParenExpression
            | ID                                             # IdExpression
            | (INT | FLOAT)                                  # NumberExpression
-           | STRING '.' STRING                              # ConcatExpression
+           | expression '.' expression                      # ConcatExpression
            | STRING                                         # StringExpression
            | BOOL                                           # BoolExpression
            | NOT expression                                 # NotExpression

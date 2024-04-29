@@ -28,6 +28,10 @@ class TypeChecker(PjpGrammarVisitor):
         for _id in ctx.ID():
             val = ctx.TYPE().getText()
 
+            if _id.getText() in self.vars:
+                self.type_errors.append('Multiple declaration of {}'.format(_id.getText()))
+                break
+
             self.vars[_id.getText()] = {
                 'type': val,
                 'value': self.get_type_default_value(val)
@@ -35,11 +39,19 @@ class TypeChecker(PjpGrammarVisitor):
 
     def visitVariableAssignment(self, ctx: PjpGrammarParser.VariableAssignmentContext):
         for _id in ctx.ID():
+            if _id.getText() not in self.vars:
+                self.type_errors.append('{} was not declared'.format(_id.getText()))
+                break
+
             declared_type = self.vars[_id.getText()]['type']
             val = self.visit(ctx.expression())
             current_type = type(val).__name__
             if current_type == 'str':
                 current_type = 'string'
+
+            if declared_type == 'int' and current_type == 'float':
+                self.type_errors.append('Trying to assign float to int')
+                break
 
             is_declared_type_num = declared_type in ['int', 'float']
             is_current_type_num = current_type in ['int', 'float']
@@ -60,6 +72,13 @@ class TypeChecker(PjpGrammarVisitor):
         left = self.visit(ctx.expression(0))
         right = self.visit(ctx.expression(1))
 
+        left_type = type(left)
+        right_type = type(right)
+
+        if left_type is str or right_type is str:
+            self.type_errors.append(
+                'Undefined operation {} for {} and {}'.format(ctx.op.text, left_type.__name__, right_type.__name__))
+
         if ctx.op.type == PjpGrammarParser.ADD:
             return left + right
         elif ctx.op.type == PjpGrammarParser.SUB:
@@ -72,12 +91,23 @@ class TypeChecker(PjpGrammarVisitor):
         left = self.visit(ctx.expression(0))
         right = self.visit(ctx.expression(1))
 
+        left_type = type(left)
+        right_type = type(right)
+
+        if left_type is str or right_type is str:
+            self.type_errors.append(
+                'Undefined operation {} for {} and {}'.format(ctx.op.text, left_type.__name__, right_type.__name__))
+
         if ctx.op.type == PjpGrammarParser.MUL:
             return left * right
         elif ctx.op.type == PjpGrammarParser.DIV:
             return left / right
         elif ctx.op.type == PjpGrammarParser.MOD:
-            return left % right
+            if left_type is int and right_type is int:
+                return left % right
+            else:
+                self.type_errors.append('Mod used with {} and {}'.format(left_type.__name__, right_type.__name__))
+                return 0
 
     def visitNumberExpression(self, ctx):
         if ctx.INT():
@@ -94,10 +124,17 @@ class TypeChecker(PjpGrammarVisitor):
         return ctx.BOOL().getText() == 'true'
 
     def visitConcatExpression(self, ctx):
-        left = ctx.STRING(0).getText()
-        right = ctx.STRING(1).getText()
+        left = self.visit(ctx.expression()[0])
+        right = self.visit(ctx.expression()[1])
 
-        return left + right
+        left_type = type(left)
+        right_type = type(right)
+
+        if left_type is str and right_type is str:
+            return left + right
+        else:
+            self.type_errors.append('Trying to concatenate {} and {}'.format(left_type.__name__, right_type.__name__))
+            return ''
 
     def visitParenExpression(self, ctx):
         return self.visit(ctx.expression())
@@ -292,11 +329,8 @@ class MyVisitor(PjpGrammarVisitor):
         return self.push(ctx.BOOL().getText() == 'true')
 
     def visitConcatExpression(self, ctx):
-        left = ctx.STRING(0).getText()
-        right = ctx.STRING(1).getText()
-
-        self.push(left)
-        self.push(right)
+        left = self.visit(ctx.expression()[0])
+        right = self.visit(ctx.expression()[1])
 
         self.add_instruction('concat')
         return left + right
