@@ -2,6 +2,8 @@ class VirtualMachine:
     def __init__(self, byte_code: str):
         self.stack = []
         self.vars = {}
+        self.jumps = {}
+        self.current_line = 0
         self.instructions = byte_code.split('\n')
 
         self.exec_methods = []
@@ -131,17 +133,12 @@ class VirtualMachine:
     def exec_save(self, args: str | None):
         self.vars[str(args)] = self.stack.pop()
 
-    @staticmethod
-    def exec_label(args: str | None):
-        pass
+    def exec_jmp(self, args: str | None):
+        self.current_line = self.jumps[int(args)]
 
-    @staticmethod
-    def exec_jmp(args: str | None):
-        pass
-
-    @staticmethod
-    def exec_fjmp(args: str | None):
-        pass
+    def exec_fjmp(self, args: str | None):
+        if not self.stack.pop():
+            self.current_line = self.jumps[int(args)]
 
     def exec_print(self, args: str | None):
         values = []
@@ -161,7 +158,11 @@ class VirtualMachine:
         self.stack.append(target_type(value))
 
     def execute(self):
-        for instruction_str in self.instructions:
+        self.calculate_labels()
+
+        while self.current_line < len(self.instructions):
+            instruction_str = self.instructions[self.current_line]
+            self.current_line = self.current_line + 1
             instruction_split = instruction_str.split(' ', 1)
             instruction_args = None if len(instruction_split) == 1 else instruction_split[1]
 
@@ -169,6 +170,13 @@ class VirtualMachine:
                 if method.__name__ == 'exec_' + instruction_split[0]:
                     method(instruction_args)
                     break
+
+    def calculate_labels(self):
+        for i, instruction_str in enumerate(self.instructions):
+            instruction_split = instruction_str.split(' ', 1)
+
+            if instruction_split[0] == 'label':
+                self.jumps[int(instruction_split[1])] = i
 
 
 if __name__ == '__main__':
